@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b2a"><link rel="manifest" href="manifest.json">
+<title>VH Staff Manager</title>
+<style>
+:root{--green:#123b2a;--gold:#f3bd43;--bg:#f4f6f4;--card:#fff;--ink:#17231c;--muted:#65736a;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--green);color:white;padding:20px 16px 16px;position:sticky;top:0;z-index:3}
+.brand{font-weight:800;font-size:20px}.sub{opacity:.82;font-size:12px;margin-top:3px}
+nav{display:flex;gap:7px;overflow:auto;padding:10px;background:#e5ebe6;position:sticky;top:80px;z-index:2}
+nav button{white-space:nowrap;border:0;border-radius:20px;padding:9px 13px;background:white;color:var(--green);font-weight:700}
+nav button.active{background:var(--green);color:white}
+main{padding:14px;max-width:850px;margin:auto}.page{display:none}.page.active{display:block}
+.card{background:var(--card);border-radius:14px;padding:15px;margin:0 0 12px;box-shadow:0 2px 8px #102b1710}
+h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{padding:13px;border-radius:12px;background:#edf4ee}.stat small{color:var(--muted);display:block}.stat strong{font-size:22px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}
+input,select,textarea{width:100%;border:1px solid #cbd5cd;border-radius:9px;padding:11px;font:inherit;background:white;color:var(--ink)}
+button.primary,button.secondary,button.danger{border:0;border-radius:9px;padding:11px 14px;font:700 14px system-ui;cursor:pointer}
+button.primary{background:var(--green);color:white}button.secondary{background:#e5ebe6;color:var(--green)}button.danger{background:#fee4e2;color:var(--red)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.muted{color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:9px 5px;border-bottom:1px solid #e6ebe7}th{color:var(--muted);font-weight:600}
+.tablewrap{overflow:auto}.empty{padding:18px;text-align:center;color:var(--muted)}
+#receipt{font-family:monospace;white-space:pre-wrap;background:white;padding:15px;border:1px dashed #999;border-radius:8px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:22px}
+@media(min-width:650px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}}
+</style></head>
+<body>
+<header><div class="brand">VH STAFF MANAGER</div><div class="sub">Victory Harrison Enterprise · Quality You Can Trust</div></header>
+<nav id="tabs">
+<button class="active" data-page="home">Dashboard</button><button data-page="stock">Stock</button><button data-page="sale">New Sale</button><button data-page="history">Sales History</button><button data-page="settings">Business</button>
+</nav>
+<main>
+<section class="page active" id="home">
+<div class="card"><h2>Business overview</h2><div class="grid">
+<div class="stat"><small>Items in stock</small><strong id="statItems">0</strong></div>
+<div class="stat"><small>Units in stock</small><strong id="statUnits">0</strong></div>
+<div class="stat"><small>Sales today</small><strong id="statToday">KSh 0</strong></div>
+<div class="stat"><small>All-time sales</small><strong id="statAll">KSh 0</strong></div>
+</div></div>
+<div class="card"><h3>Quick start</h3><p class="muted">1. Add your products under Stock. 2. Record customer purchases under New Sale. 3. Open Sales History to view or print receipts.</p><p class="muted">Data is saved on this device in this browser. Export a backup regularly from Business.</p></div>
+<div class="card"><h3>Low-stock items</h3><div id="lowStock" class="empty">No items added yet.</div></div>
+</section>
+<section class="page" id="stock">
+<div class="card"><h2>Add / update stock item</h2>
+<form id="stockForm"><div class="formgrid">
+<div><label>Item name</label><input id="itemName" required placeholder="e.g. Pishori rice, 6kg cylinder"></div>
+<div><label>Category</label><select id="itemCategory"><option>Shop item</option><option>Cereals</option><option>LPG cylinder</option><option>Other</option></select></div>
+<div><label>Quantity in stock</label><input id="itemQty" type="number" min="0" step="0.01" required placeholder="e.g. 20"></div>
+<div><label>Selling price (KSh per unit)</label><input id="itemPrice" type="number" min="0" step="0.01" required placeholder="e.g. 150"></div>
+<div><label>Low-stock alert at</label><input id="itemAlert" type="number" min="0" step="0.01" value="3"></div>
+<div><label>Unit</label><input id="itemUnit" placeholder="piece, kg, bag" value="piece"></div>
+</div><div class="actions"><button class="primary" type="submit">Save item</button><button class="secondary" type="reset">Clear form</button></div></form></div>
+<div class="card"><h2>Current stock</h2><div class="tablewrap"><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div><div id="stockEmpty" class="empty">No stock yet. Add your first item above.</div></div>
+</section>
+<section class="page" id="sale">
+<div class="card"><h2>Record a sale</h2><form id="saleForm">
+<label>Customer name (optional)</label><input id="customer" placeholder="Walk-in customer">
+<label>Choose item</label><select id="saleItem" required></select>
+<div class="formgrid"><div><label>Quantity sold</label><input id="saleQty" type="number" min="0.01" step="0.01" value="1" required></div>
+<div><label>Payment method</label><select id="payment"><option>Cash</option><option>M-Pesa</option><option>Card</option><option>Credit</option><option>Other</option></select></div></div>
+<div class="actions"><button class="primary" type="submit">Save sale & create receipt</button></div></form>
+<div id="receiptArea" style="display:none;margin-top:16px"><h3>Receipt preview</h3><div id="receipt"></div><div class="actions"><button class="primary" onclick="window.print()">Print receipt</button><button class="secondary" id="shareReceipt">Share / copy receipt</button></div></div>
+</div>
+</section>
+<section class="page" id="history"><div class="card"><h2>Sales history</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Customer / item</th><th>Total</th><th></th></tr></thead><tbody id="salesRows"></tbody></table></div><div id="salesEmpty" class="empty">No sales recorded yet.</div></div></section>
+<section class="page" id="settings">
+<div class="card"><h2>Business details</h2><form id="businessForm">
+<label>Business name</label><input id="bizName" value="Victory Harrison Enterprise" required>
+<label>Phone number</label><input id="bizPhone" placeholder="Enter business phone">
+<label>Payment details / till / paybill (optional)</label><input id="bizPay" placeholder="Enter payment instructions">
+<div class="actions"><button class="primary" type="submit">Save details</button></div></form></div>
+<div class="card"><h2>Backup and restore</h2><p class="muted">Export stock, sales and business details as a backup file. Keep it somewhere safe.</p><div class="actions"><button class="primary" id="exportBtn">Export backup</button><label class="secondary" style="margin:0;padding:11px 14px;border-radius:9px;cursor:pointer"><input type="file" id="importFile" accept=".json,application/json" style="display:none">Import backup</label></div></div>
+<div class="card"><h3>Important note</h3><p class="muted">This starter version stores information on this device only. It does not sync across staff phones, process payments, or automatically connect to a receipt printer. Export backups regularly.</p></div>
+</section>
+</main><footer>VH Staff Manager · Starter edition</footer>
+<script>
+const $=id=>document.getElementById(id);
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+let stock=load('vh_stock',[]), sales=load('vh_sales',[]), biz=load('vh_biz',{name:'Victory Harrison Enterprise',phone:'',pay:''}), lastReceipt='';
+const save=()=>{localStorage.setItem('vh_stock',JSON.stringify(stock));localStorage.setItem('vh_sales',JSON.stringify(sales));localStorage.setItem('vh_biz',JSON.stringify(biz));render()};
+const money=n=>'KSh '+Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:0,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===b.dataset.page));});
+$('stockForm').onsubmit=e=>{e.preventDefault();let name=$('itemName').value.trim();let found=stock.find(x=>x.name.toLowerCase()===name.toLowerCase());let obj={name,category:$('itemCategory').value,qty:+$('itemQty').value,price:+$('itemPrice').value,alert:+$('itemAlert').value||0,unit:$('itemUnit').value.trim()||'piece'};if(found)Object.assign(found,obj);else stock.push({id:Date.now(),...obj});e.target.reset();$('itemAlert').value=3;$('itemUnit').value='piece';save();};
+$('saleForm').onsubmit=e=>{e.preventDefault();let item=stock.find(x=>x.id===+$('saleItem').value);let qty=+$('saleQty').value;if(!item)return alert('Please add stock first.');if(qty<=0||qty>item.qty)return alert('Quantity is invalid or exceeds available stock.');item.qty=+(item.qty-qty).toFixed(2);let sale={id:Date.now(),date:new Date().toISOString(),customer:$('customer').value.trim()||'Walk-in customer',item:item.name,qty,unit:item.unit,price:item.price,total:qty*item.price,payment:$('payment').value};sales.unshift(sale);save();lastReceipt=makeReceipt(sale);$('receipt').textContent=lastReceipt;$('receiptArea').style.display='block';e.target.reset();$('saleQty').value=1;};
+function makeReceipt(s){return `${biz.name}\n${biz.phone?('Tel: '+biz.phone+'\n'):''}${biz.pay?biz.pay+'\n':''}--------------------------------\nCUSTOMER RECEIPT\nReceipt: VH-${s.id}\nDate: ${new Date(s.date).toLocaleString()}\nCustomer: ${s.customer}\n--------------------------------\nItem: ${s.item}\nQty: ${s.qty} ${s.unit}\nPrice: ${money(s.price)}\nTOTAL: ${money(s.total)}\nPayment: ${s.payment}\n--------------------------------\nThank you for shopping with us!\nQuality You Can Trust.`}
+$('shareReceipt').onclick=async()=>{try{if(navigator.share)await navigator.share({title:'VH receipt',text:lastReceipt});else{await navigator.clipboard.writeText(lastReceipt);alert('Receipt copied.')}}catch{alert(lastReceipt)}};
+function delItem(id){if(!confirm('Delete this stock item?'))return;stock=stock.filter(x=>x.id!==id);save()}
+function showReceipt(id){let s=sales.find(x=>x.id===id);if(!s)return;lastReceipt=makeReceipt(s);$('receipt').textContent=lastReceipt;$('receiptArea').style.display='block';document.querySelector('[data-page="sale"]').click();$('receiptArea').scrollIntoView({behavior:'smooth'});}
+function render(){ $('statItems').textContent=stock.length;$('statUnits').textContent=stock.reduce((a,x)=>a+x.qty,0).toLocaleString();let today=new Date().toDateString();$('statToday').textContent=money(sales.filter(s=>new Date(s.date).toDateString()===today).reduce((a,s)=>a+s.total,0));$('statAll').textContent=money(sales.reduce((a,s)=>a+s.total,0));
+$('stockRows').innerHTML=stock.map(x=>`<tr><td><b>${esc(x.name)}</b><br><span class="muted">${esc(x.category)}</span></td><td>${x.qty} ${esc(x.unit)}</td><td>${money(x.price)}</td><td><button class="danger" onclick="delItem(${x.id})">Delete</button></td></tr>`).join('');$('stockEmpty').style.display=stock.length?'none':'block';
+$('saleItem').innerHTML=stock.length?stock.map(x=>`<option value="${x.id}">${esc(x.name)} — ${x.qty} ${esc(x.unit)} available</option>`).join(''):'<option value="">Add stock first</option>';
+$('salesRows').innerHTML=sales.map(s=>`<tr><td>${new Date(s.date).toLocaleDateString()}</td><td>${esc(s.customer)}<br><span class="muted">${esc(s.item)} × ${s.qty}</span></td><td>${money(s.total)}</td><td><button class="secondary" onclick="showReceipt(${s.id})">Receipt</button></td></tr>`).join('');$('salesEmpty').style.display=sales.length?'none':'block';
+let low=stock.filter(x=>x.qty<=x.alert);$('lowStock').innerHTML=low.length?low.map(x=>`<p><b>${esc(x.name)}</b> — ${x.qty} ${esc(x.unit)} left</p>`).join(''):'No low-stock items.';
+$('bizName').value=biz.name||'';$('bizPhone').value=biz.phone||'';$('bizPay').value=biz.pay||'';
+}
+$('businessForm').onsubmit=e=>{e.preventDefault();biz={name:$('bizName').value.trim(),phone:$('bizPhone').value.trim(),pay:$('bizPay').value.trim()};save();alert('Business details saved.')};
+$('exportBtn').onclick=()=>{let data=JSON.stringify({stock,sales,biz},null,2),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='VH-Staff-Manager-backup.json';a.click();URL.revokeObjectURL(a.href)};
+$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.stock)||!Array.isArray(d.sales)||!d.biz)throw Error();if(!confirm('Replace current app data with this backup?'))return;stock=d.stock;sales=d.sales;biz=d.biz;save();alert('Backup restored.')}catch{alert('This backup file is not valid.')}e.target.value=''};
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script></body></html>
